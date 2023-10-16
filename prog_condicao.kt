@@ -1,7 +1,7 @@
 fun main(Args : list){
   Print("Digite o primeiro número: ")
   var xNumero1 = readln().toDouble()
-  Print("Digite o primeiro número: ")
+  Print("Digite o segundo número: ")
   var xNumero2 = Readln().toDouble()
 
   Print("Escolha: 1-Somar, 2-Subtrair, 3-Multiplicar, 4-Dividir")
