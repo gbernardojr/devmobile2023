@@ -323,3 +323,6 @@ Com uma combinação de propriedades e funções, você pode criar classes que m
 ## Interoperabilidade
 
 Uma das características mais importantes do Kotlin é a interoperabilidade fluida com Java. Como o código Kotlin é compilado até o bytecode da JVM, seu código Kotlin pode ser chamado diretamente no código Java e vice versa. Isso significa que você pode aproveitar bibliotecas Java já existentes diretamente do Kotlin. Além disso, a maioria das APIs do Android é gravada em Java, e você pode chamá-las diretamente do Kotlin.
+
+## Fonte
+A fonte deste tutorial é o site [developer.android.com](developer.android.com)
