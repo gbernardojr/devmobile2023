@@ -324,5 +324,125 @@ Com uma combinação de propriedades e funções, você pode criar classes que m
 
 Uma das características mais importantes do Kotlin é a interoperabilidade fluida com Java. Como o código Kotlin é compilado até o bytecode da JVM, seu código Kotlin pode ser chamado diretamente no código Java e vice versa. Isso significa que você pode aproveitar bibliotecas Java já existentes diretamente do Kotlin. Além disso, a maioria das APIs do Android é gravada em Java, e você pode chamá-las diretamente do Kotlin.
 
+## Introdução ao estado no Compose ##
+
+# Usar o estado no Compose
+O estado em um app é qualquer valor que pode mudar ao longo do tempo. Neste app, o estado é o valor da conta.
+
+Adicione uma variável para armazenar o estado:
+
+No início da função EditNumberField(), use a palavra-chave val para adicionar uma variável amountInput e defini-la com o valor "0":
+
+```
+val amountInput = "0"
+```
+
+Este é o estado do app para o valor da conta.
+
+Defina o parâmetro chamado value com um valor amountInput:
+```
+TextField(
+   value = amountInput,
+   onValueChange = {},
+)
+```
+
+Verificar a visualização. A caixa de texto mostra o valor definido para a variável de estado.
+
+Execute o app no emulador e tente inserir um valor diferente. O estado fixado no código continua o mesmo, porque o elemento combinável TextField não é atualizado automaticamente. Ele muda quando o parâmetro value, definido como a propriedade amountInput, é modificado.
+A variável amountInput representa o estado da caixa de texto. Ter um estado fixado no código não é útil, já que ele não pode ser modificado e não reflete a entrada do usuário. É necessário atualizar o estado do app quando o usuário atualiza o valor da conta.
+
+## A composição
+
+Os elementos combináveis no app descrevem uma interface que mostra uma coluna com texto, um espaçador e uma caixa de texto. O texto mostra Calculate Tip, e a caixa de texto mostra um valor 0 ou o valor padrão.
+
+O Compose é um framework de interface declarativo, ou seja, você declara como será a interface no código. Se você quiser que a caixa de texto mostre inicialmente um valor 100, defina no código o valor inicial dos elementos de composição como 100.
+
+O que acontece se você quiser que a interface mude enquanto o app está em execução ou quando o usuário interage com ele? Por exemplo, o que acontece quando você atualiza a variável amountInput com o valor inserido pelo usuário e a mostra na caixa de texto? É então que você precisa usar um processo chamado recomposição para atualizar a composição do app.
+
+A composição é uma descrição da interface criada pelo Compose quando ele executa elementos combináveis. Os apps do Compose chamam funções combináveis para transformar dados em elementos da interface. Se uma mudança de estado ocorrer, o Compose vai executar novamente as funções combináveis afetadas com o novo estado, criando uma interface atualizada. Isso é chamado de recomposição. O Compose programa uma recomposição para você.
+
+Quando o Compose executa seus elementos combináveis pela primeira vez durante a composição inicial, ele acompanha os elementos chamados para descrever a interface em uma composição. A recomposição acontece quando o Compose executa novamente os elementos de composição que foram modificados em resposta a mudanças de dados e, em seguida, atualiza a composição para refletir essas mudanças.
+
+A composição só pode ser produzida por uma composição inicial e atualizada por recomposição. A única maneira de modificar uma composição é pela recomposição. Para fazer isso, o Compose precisa saber qual estado será acompanhado para programar a recomposição ao receber uma atualização. No seu caso, é a variável amountInput. Então, sempre que o valor mudar, o Compose vai programar uma recomposição.
+
+Você usa os tipos State e MutableState no Compose para tornar o estado no app observável ou monitorado pelo Compose. O tipo State é imutável, ou seja, o valor dele só será lido, enquanto o tipo MutableState for mutável. Você pode usar a função mutableStateOf() para criar um MutableState observável. Ele recebe um valor inicial como um parâmetro envolvido por um objeto State, que torna o value dele observável.
+
+O valor retornado pela função mutableStateOf():
+
+mantém o estado, que é o valor da conta;
+é mutável, então o valor pode ser mudado;
+é observável, então o Compose observa as mudanças no valor e aciona uma recomposição para atualizar a interface.
+Adicione um estado de custo de serviço:
+
+Na função EditNumberField(), mude a palavra-chave val antes da variável de estado amountInput para a palavra-chave var:
+
+```
+var amountInput = "0"
+```
+
+Isso torna o amountInput mutável.
+
+Use o tipo MutableState<String> em vez da variável String fixada no código para que o Compose saiba que precisa acompanhar o estado amountInput e depois transmitir uma string "0", que é o valor padrão inicial para a variável de estado amountInput:
+
+```
+import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.mutableStateOf
+```
+
+```
+var amountInput: MutableState<String> = mutableStateOf("0")
+```
+
+A inicialização de amountInput também pode ser programada desta forma com inferência de tipo:
+
+```
+var amountInput = mutableStateOf("0")
+```
+
+A função mutableStateOf() recebe um valor inicial de "0" como argumento, fazendo com que o amountInput seja observável. O resultado é este aviso de compilação no Android Studio, mas isso poderá ser corrigido em breve:
+
+Creating a state object during composition without using remember.
+
+Na função combinável TextField, use a propriedade amountInput.value:
+
+```
+TextField(
+   value = amountInput.value,
+   onValueChange = {},
+   modifier = modifier
+)
+```
+
+O Compose monitora cada elemento combinável que lê propriedades de estado value e aciona uma recomposição quando o value é modificado.
+
+O callback onValueChange é acionado quando a entrada na caixa de texto é mudada. Na expressão lambda, a variável it contém o novo valor.
+
+Na expressão lambda do parâmetro chamado onValueChange, defina a propriedade amountInput.value como a variável it:
+
+```
+@Composable
+fun EditNumberField(modifier: Modifier = Modifier) {
+   var amountInput = mutableStateOf("0")
+   TextField(
+       value = amountInput.value,
+       onValueChange = { amountInput.value = it },
+       modifier = modifier
+   )
+}
+```
+
+Você está atualizando o estado de TextField (a variável amountInput), quando TextField notifica que há uma mudança no texto usando a função de callback onValueChange.
+
+Execute o app e digite o texto. A caixa de texto ainda mostra um valor 0, como nesta imagem:
+o usuário tenta digitar no campo de texto, mas nada muda
+
+Quando o usuário digita na caixa de texto, o callback onValueChange é chamado, e a variável amountInput é atualizada com o novo valor. O estado amountInput é acompanhado pelo Compose. Assim, quando o valor muda, a recomposição é programada, e a função de composição EditNumberField() é executada novamente. Nessa função de composição, a variável amountInput é redefinida para o valor inicial de 0. Assim, a caixa de texto mostra um valor 0.
+
+Com o código adicionado, as mudanças de estado fazem com que as recomposições sejam programadas.
+
+No entanto, é necessário preservar o valor da variável amountInput nas recomposições para que ela não seja redefinida como 0 sempre que a função EditNumberField() é recomposta. Vamos resolver esse problema na próxima seção.
+
+
 ## Fonte
 A fonte deste tutorial é o site [developer.android.com](developer.android.com)
