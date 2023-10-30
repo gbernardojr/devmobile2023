@@ -1,0 +1,50 @@
+@Composable
+fun TipTimeLayout() {
+    var valorCompraDigitada by remember { mutableStateOf("") }
+
+    val ValorCompra = valorCompraDigitada.toDoubleOrNull() ?: 0.0
+    val gorgeta = calculaGorgeta(ValorCompra)
+
+    Column(
+        modifier = Modifier
+            .statusBarsPadding()
+            .padding(horizontal = 40.dp)
+            .verticalScroll(rememberScrollState())
+            .safeDrawingPadding(),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center
+    ) {
+        Text(
+            text = "Calculadora de Gorgeta",
+            modifier = Modifier
+                .padding(bottom = 16.dp, top = 40.dp)
+                .align(alignment = Alignment.Start)
+        )
+        EditNumberField(
+            value = valorCompraDigitada,
+            onValueChanged = { valorCompraDigitada = it },
+            modifier = Modifier.padding(bottom = 32.dp).fillMaxWidth()
+        )
+        Text(
+            text = "Valor da gorgeta: ${gorgeta}",
+            style = MaterialTheme.typography.displaySmall
+        )
+        Spacer(modifier = Modifier.height(150.dp))
+    }
+}
+
+@Composable
+fun EditNumberField(
+    value: String,
+    onValueChanged: (String) -> Unit,
+    modifier: Modifier
+) {
+    TextField(
+        value = value,
+        singleLine = true,
+        modifier = modifier,
+        onValueChange = onValueChanged,
+        label = { Text("Valor da Compra: ") },
+        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
+    )
+}
