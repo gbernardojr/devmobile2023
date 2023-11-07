@@ -1,0 +1,187 @@
+dependencies {
+    implementation "androidx.compose.ui:ui:1.0.0"
+    implementation "androidx.activity:activity-compose:1.3.1"
+    implementation "androidx.lifecycle:lifecycle-viewmodel-compose:1.0.0-alpha07"
+}
+
+
+########################################################################################
+
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    app:startDestination="clientList">
+
+    <composable name="clientList" route="clientList">
+        <action
+            android:id="@+id/navigateToClientDetail"
+            app:destination="clientDetail" />
+    </composable>
+
+    <composable name="clientDetail" route="clientDetail/{clientId}">
+        <argument
+            android:id="@+id/clientId"
+            app:argType="string" />
+    </composable>
+</navigation>
+
+##########################################################################################
+
+data class Client(val name: String, val email: String, val phone: String)
+
+
+##########################################################################################
+
+import androidx.lifecycle.ViewModel
+
+class ClientViewModel : ViewModel() {
+    val clients = mutableStateListOf<Client>()
+
+    fun addClient(client: Client) {
+        clients.add(client)
+    }
+}
+
+###########################################################################################
+
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.runtime.Composable
+import androidx.lifecycle.viewmodel.compose.viewModel
+
+@Composable
+fun ClientListScreen(clientViewModel: ClientViewModel) {
+    val clients = clientViewModel.clients
+    Column(modifier = Modifier.fillMaxSize()) {
+        LazyColumn {
+            items(clients) { client ->
+                // Exibir informações do cliente
+            }
+        }
+    }
+}
+
+##########################################################################################
+
+@Composable
+fun AddClientScreen(clientViewModel: ClientViewModel, onClientAdded: () -> Unit) {
+    var name by remember { mutableStateOf("") }
+    var email by remember { mutableStateOf("") }
+    var phone by remember { mutableStateOf("") }
+
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(16.dp)
+    ) {
+        TextField(
+            value = name,
+            onValueChange = { name = it },
+            label = { Text("Nome") }
+        )
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        TextField(
+            value = email,
+            onValueChange = { email = it },
+            label = { Text("E-mail") }
+        )
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        TextField(
+            value = phone,
+            onValueChange = { phone = it },
+            label = { Text("Telefone") }
+        )
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        Button(
+            onClick = {
+                // Validar e adicionar o cliente à lista
+                if (name.isNotBlank() && email.isNotBlank() && phone.isNotBlank()) {
+                    val newClient = Client(name, email, phone)
+                    clientViewModel.addClient(newClient)
+                    onClientAdded()
+                }
+            },
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(50.dp)
+        ) {
+            Text("Adicionar Cliente")
+        }
+    }
+}
+
+#######################################################################################################
+
+@Composable
+fun ClientDetailScreen(clientId: String, clientViewModel: ClientViewModel) {
+    val client = clientViewModel.clients.find { it.id == clientId }
+
+    if (client != null) {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(16.dp)
+        ) {
+            Text("Detalhes do Cliente", fontSize = 24.sp, fontWeight = FontWeight.Bold)
+            Spacer(modifier = Modifier.height(16.dp))
+            Text("Nome: ${client.name}", fontSize = 18.sp)
+            Text("E-mail: ${client.email}", fontSize = 18.sp)
+            Text("Telefone: ${client.phone}", fontSize = 18.sp)
+        }
+    } else {
+        Text("Cliente não encontrado", fontSize = 20.sp, fontWeight = FontWeight.Bold)
+    }
+}
+
+######################################################################################################
+
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.rememberNavController
+
+@Composable
+fun ClientApp() {
+    val navController = rememberNavController()
+    
+    NavHost(navController, startDestination = "clientList") {
+        composable("clientList") {
+            ClientListScreen(clientViewModel = viewModel())
+        }
+        composable("clientDetail/{clientId}") { backStackEntry ->
+            val clientId = backStackEntry.arguments?.getString("clientId") ?: ""
+            ClientDetailScreen(clientId, clientViewModel = viewModel())
+        }
+    }
+}
+
+
+##########################################################################################################
+
+import android.os.Bundle
+import androidx.activity.ComponentActivity
+import androidx.activity.compose.setContent
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.tooling.preview.Preview
+import com.example.myapplication.ui.theme.MyApplicationTheme
+import androidx.compose.foundation.layout.Column
+import androidx.lifecycle.viewmodel.compose.viewModel
+
+class MainActivity : ComponentActivity() {
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        setContent {
+            MyApplicationTheme {
+                // Chame a função ClientApp aqui
+            }
+        }
+    }
+}
